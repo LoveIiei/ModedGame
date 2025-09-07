@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36401.2
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModedGame", "ModedGame\ModedGame.csproj", "{81B1A83E-E52C-4327-8F77-B811641F9DDA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TryRenam", "TryRenam\TryRenam.csproj", "{EC75580C-9C8F-43EC-899F-9577FD12BB8E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{81B1A83E-E52C-4327-8F77-B811641F9DDA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{81B1A83E-E52C-4327-8F77-B811641F9DDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{81B1A83E-E52C-4327-8F77-B811641F9DDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{81B1A83E-E52C-4327-8F77-B811641F9DDA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC75580C-9C8F-43EC-899F-9577FD12BB8E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC75580C-9C8F-43EC-899F-9577FD12BB8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC75580C-9C8F-43EC-899F-9577FD12BB8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC75580C-9C8F-43EC-899F-9577FD12BB8E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D42C20ED-6811-433A-9EBB-581BEBA43C7F}
+	EndGlobalSection
+EndGlobal
