@@ -440,7 +440,7 @@ namespace ModedGame.Pages
                         PropertyNameCaseInsensitive = true
                     });
 
-                    if (versionInfo?.Type == "release" || versionInfo?.Type == "snapshot")
+                    if (versionInfo?.Id != null)
                     {
                         validVersions.Add(versionInfo.Id);
                     }
@@ -480,6 +480,54 @@ namespace ModedGame.Pages
             private string minecraftDir;
             private string javaPath;
 
+            private MCVersionInfo GetMergedVersionInfo(string version)
+            {
+                var versionDir = Path.Combine(MinecraftPaths.MinecraftRoot, "versions", version);
+                var versionJsonPath = Path.Combine(versionDir, $"{version}.json");
+
+                if (!File.Exists(versionJsonPath))
+                {
+                    throw new Exception($"Version JSON not found for {version}");
+                }
+
+                var jsonText = File.ReadAllText(versionJsonPath);
+                var versionInfo = JsonSerializer.Deserialize<MCVersionInfo>(jsonText, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                // If this version inherits from another, load and merge them
+                if (!string.IsNullOrEmpty(versionInfo.InheritsFrom))
+                {
+                    var baseVersionInfo = GetMergedVersionInfo(versionInfo.InheritsFrom);
+
+                    // Merge: The modded version's properties override the base's
+                    baseVersionInfo.Id = versionInfo.Id; // Use the final version ID
+                    if (!string.IsNullOrEmpty(versionInfo.MainClass))
+                    {
+                        baseVersionInfo.MainClass = versionInfo.MainClass;
+                    }
+                    if (versionInfo.Arguments != null)
+                    {
+                        // Simple merge: Add modded arguments to the base arguments
+                        if (versionInfo.Arguments.Game != null)
+                            baseVersionInfo.Arguments.Game.AddRange(versionInfo.Arguments.Game);
+                        if (versionInfo.Arguments.Jvm != null)
+                            baseVersionInfo.Arguments.Jvm.AddRange(versionInfo.Arguments.Jvm);
+                    }
+
+                    // Prepend modded libraries to ensure they are loaded first
+                    if (versionInfo.Libraries != null)
+                    {
+                        baseVersionInfo.Libraries.InsertRange(0, versionInfo.Libraries);
+                    }
+
+                    return baseVersionInfo;
+                }
+
+                return versionInfo;
+            }
+
             public SimplifiedMinecraftLauncher()
             {
                 minecraftDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".minecraft");
@@ -493,32 +541,29 @@ namespace ModedGame.Pages
 
             public void LaunchMinecraft(string version)
             {
+                // Use the new method to get the complete, merged version info
+                var versionInfo = GetMergedVersionInfo(version);
+
                 var versionDir = Path.Combine(minecraftDir, "versions", version);
-                var versionJson = Path.Combine(versionDir, $"{version}.json");
                 var versionJar = Path.Combine(versionDir, $"{version}.jar");
 
-                if (!File.Exists(versionJson) || !File.Exists(versionJar))
+                // For inherited versions, the JAR is often the parent's JAR
+                if (!File.Exists(versionJar) && !string.IsNullOrEmpty(versionInfo.InheritsFrom))
                 {
-                    throw new Exception($"Version files not found for {version}");
+                    versionJar = Path.Combine(minecraftDir, "versions", versionInfo.InheritsFrom, $"{versionInfo.InheritsFrom}.jar");
                 }
 
-                // Parse version info
-                var versionInfo = JsonSerializer.Deserialize<MCVersionInfo>(
-                    File.ReadAllText(versionJson),
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
-                );
+                if (!File.Exists(versionJar))
+                {
+                    throw new Exception($"Version JAR not found for {version}");
+                }
 
-                // Extract and setup natives
                 var nativesDir = Path.Combine(versionDir, $"{version}-natives");
                 SetupNatives(versionInfo, nativesDir);
 
-                // Build classpath
                 var classpath = BuildClasspath(versionInfo, versionJar);
+                var cmd = BuildLaunchCommand(versionInfo, version, classpath, nativesDir); // Pass the full versionInfo
 
-                // Build command
-                var cmd = BuildLaunchCommand(versionInfo, version, classpath, nativesDir);
-
-                // Launch
                 var startInfo = new ProcessStartInfo
                 {
                     FileName = javaPath,
@@ -528,14 +573,7 @@ namespace ModedGame.Pages
                     CreateNoWindow = false
                 };
 
-                var process = Process.Start(startInfo);
-
-                // Check if it crashed immediately
-                System.Threading.Thread.Sleep(2000);
-                if (process.HasExited)
-                {
-                    throw new Exception($"Minecraft crashed immediately. Exit code: {process.ExitCode}");
-                }
+                Process.Start(startInfo);
             }
 
             private void SetupNatives(MCVersionInfo versionInfo, string nativesDir)
@@ -613,70 +651,87 @@ namespace ModedGame.Pages
                 return Path.Combine(minecraftDir, "libraries", group, artifact, version, jarName);
             }
 
-            private string BuildLaunchCommand(MCVersionInfo versionInfo, string version, string classpath, string nativesDir, bool isModded = false)
+            private string BuildLaunchCommand(MCVersionInfo versionInfo, string version, string classpath, string nativesDir)
             {
                 var args = new List<string>();
 
-                // Memory settings - increase for modded versions
-                if (isModded)
+                // 1. Process JVM Arguments from JSON
+                if (versionInfo.Arguments?.Jvm != null)
                 {
-                    args.Add("-Xmx4G");
-                    args.Add("-Xms2G");
+                    foreach (var argObj in versionInfo.Arguments.Jvm)
+                    {
+                        if (argObj is JsonElement element && element.ValueKind == JsonValueKind.String)
+                        {
+                            args.Add(element.GetString());
+                        }
+                    }
                 }
-                else
+
+                // Add Main Class - It's technically a JVM argument
+                args.Add(versionInfo.MainClass);
+
+                // 2. Process Game Arguments from JSON
+                if (versionInfo.Arguments?.Game != null)
                 {
-                    args.Add("-Xmx2G");
-                    args.Add("-Xms1G");
+                    foreach (var argObj in versionInfo.Arguments.Game)
+                    {
+                        if (argObj is JsonElement element && element.ValueKind == JsonValueKind.String)
+                        {
+                            args.Add(element.GetString());
+                        }
+                    }
                 }
 
-                // Additional JVM args for better performance
-                args.Add("-XX:+UseG1GC");
-                args.Add("-XX:+ParallelRefProcEnabled");
-                args.Add("-XX:MaxGCPauseMillis=200");
-                args.Add("-XX:+UnlockExperimentalVMOptions");
-                args.Add("-XX:+DisableExplicitGC");
-                args.Add("-XX:G1NewSizePercent=30");
-                args.Add("-XX:G1MaxNewSizePercent=40");
-                args.Add("-XX:G1HeapRegionSize=8M");
-                args.Add("-XX:G1ReservePercent=20");
-                args.Add("-XX:G1HeapWastePercent=5");
-                args.Add("-XX:G1MixedGCCountTarget=4");
-                args.Add("-XX:InitiatingHeapOccupancyPercent=15");
-                args.Add("-XX:G1MixedGCLiveThresholdPercent=90");
-                args.Add("-XX:G1RSetUpdatingPauseTimePercent=5");
-                args.Add("-XX:SurvivorRatio=32");
-                args.Add("-XX:+PerfDisableSharedMem");
-                args.Add("-XX:MaxTenuringThreshold=1");
+                // 3. Define placeholders with RAW, UNQUOTED values
+                var replacements = new Dictionary<string, string>
+    {
+        { "${auth_player_name}", "Player" },
+        { "${version_name}", version },
+        { "${game_directory}", minecraftDir }, // No quotes!
+        { "${assets_root}", Path.Combine(minecraftDir, "assets") }, // No quotes!
+        { "${assets_index_name}", versionInfo.AssetIndex?.Id ?? versionInfo.InheritsFrom ?? version },
+        { "${auth_uuid}", "00000000-0000-0000-0000-000000000000" },
+        { "${auth_access_token}", "0" },
+        { "${user_type}", "legacy" },
+        { "${version_type}", "release" },
+        { "${natives_directory}", nativesDir }, // No quotes!
+        { "${launcher_name}", "MyLauncher" },
+        { "${launcher_version}", "1.0" },
+        { "${classpath}", classpath } // No quotes!
+    };
 
-                // Natives library path
-                args.Add($"-Djava.library.path=\"{nativesDir}\"");
-
-                // System properties
-                args.Add("-Dfml.ignoreInvalidMinecraftCertificates=true");
-                args.Add("-Dfml.ignorePatchDiscrepancies=true");
-
-                // Classpath
-                args.Add("-cp");
-                args.Add($"\"{classpath}\"");
-
-                // Main class
-                args.Add(versionInfo.MainClass ?? "net.minecraft.client.main.Main");
-
-                // Game arguments
-                var assetsDir = Path.Combine(minecraftDir, "assets");
-                var assetIndex = versionInfo.AssetIndex?.Id ?? version;
-
-                args.AddRange(new[]
+                // 4. Perform placeholder replacement safely
+                for (int i = 0; i < args.Count; i++)
                 {
-            "--username", "Player",
-            "--version", version,
-            "--gameDir", $"\"{minecraftDir}\"",
-            "--assetsDir", $"\"{assetsDir}\"",
-            "--assetIndex", assetIndex,
-            "--uuid", "00000000-0000-0000-0000-000000000000",
-            "--accessToken", "0",
-            "--userType", "legacy"
-        });
+                    foreach (var pair in replacements)
+                    {
+                        args[i] = args[i].Replace(pair.Key, pair.Value);
+                    }
+                }
+
+                // Prepend essential JVM arguments that aren't in the JSON list
+                var finalJvmArgs = new List<string>
+    {
+        "-Xmx4G",
+        $"-Djava.library.path={nativesDir}" // No quotes here yet
+    };
+                args.InsertRange(0, finalJvmArgs);
+
+                // 5. Final, critical step: Quote any argument that contains spaces.
+                for (int i = 0; i < args.Count; i++)
+                {
+                    // The classpath argument (-cp) needs special handling as its value is next
+                    if (args[i] == "-cp" && i + 1 < args.Count)
+                    {
+                        // Quote the classpath value which is the next argument
+                        args[i + 1] = $"\"{args[i + 1]}\"";
+                    }
+                    else if (args[i].Contains(' ') && !args[i].StartsWith("\""))
+                    {
+                        // Quote any other argument that has a space
+                        args[i] = $"\"{args[i]}\"";
+                    }
+                }
 
                 return string.Join(" ", args);
             }
