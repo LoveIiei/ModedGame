@@ -38,7 +38,7 @@ namespace ModedGame.ViewModels
         {
             MCFileType = new List<MCFileTypes>
         {
-            new MCFileTypes { Id = 1, Name = "Mod" },
+            new MCFileTypes { Id = 1, Name = "Mod"}, 
             new MCFileTypes { Id = 2, Name = "ResourcePack" },
             new MCFileTypes { Id = 3, Name = "Shaders" },
             new MCFileTypes { Id = 4, Name = "Sound" },

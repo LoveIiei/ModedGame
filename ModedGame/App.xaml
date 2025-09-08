@@ -4,6 +4,309 @@
              xmlns:local="clr-namespace:ModedGame"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
+        <ControlTemplate x:Key="ModernButtonTemplate" TargetType="Button">
+                    <Grid>
+                        <!-- Drop Shadow -->
+                        <Border Name="ShadowBorder" 
+                        CornerRadius="12" 
+                        Margin="4"
+                        Opacity="0.3">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                    <GradientStop Color="#40000000" Offset="0"/>
+                                    <GradientStop Color="#20000000" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Border.Effect>
+                                <BlurEffect Radius="8"/>
+                            </Border.Effect>
+                        </Border>
+
+                        <!-- Main Button Border -->
+                        <Border Name="MainBorder" 
+                        CornerRadius="10" 
+                        BorderThickness="1"
+                        Margin="2">
+                            <Border.BorderBrush>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                    <GradientStop Color="#FF4A90E2" Offset="0"/>
+                                    <GradientStop Color="#FF2171B5" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.BorderBrush>
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                    <GradientStop Color="#FF5BA0F2" Offset="0"/>
+                                    <GradientStop Color="#FF4A90E2" Offset="0.5"/>
+                                    <GradientStop Color="#FF3A7BC8" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+
+                            <!-- Inner highlight -->
+                            <Border CornerRadius="9" 
+                            BorderThickness="1" 
+                            BorderBrush="#30FFFFFF"
+                            Margin="1">
+
+                                <!-- Content Presenter -->
+                                <ContentPresenter HorizontalAlignment="Center" 
+                                        VerticalAlignment="Center"
+                                        Margin="16,8"/>
+                            </Border>
+                        </Border>
+                    </Grid>
+
+                    <!-- Triggers for different states -->
+                    <ControlTemplate.Triggers>
+                        <!-- Hover State -->
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <ColorAnimation Storyboard.TargetName="MainBorder"
+                                              Storyboard.TargetProperty="(Border.Background).(LinearGradientBrush.GradientStops)[0].(GradientStop.Color)"
+                                              To="#FF6BB0FF" Duration="0:0:0.2"/>
+                                        <ColorAnimation Storyboard.TargetName="MainBorder"
+                                              Storyboard.TargetProperty="(Border.Background).(LinearGradientBrush.GradientStops)[1].(GradientStop.Color)"
+                                              To="#FF5AA0F2" Duration="0:0:0.2"/>
+                                        <ColorAnimation Storyboard.TargetName="MainBorder"
+                                              Storyboard.TargetProperty="(Border.Background).(LinearGradientBrush.GradientStops)[2].(GradientStop.Color)"
+                                              To="#FF4A8BD8" Duration="0:0:0.2"/>
+                                        <DoubleAnimation Storyboard.TargetName="ShadowBorder"
+                                               Storyboard.TargetProperty="Opacity"
+                                               To="0.5" Duration="0:0:0.2"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <ColorAnimation Storyboard.TargetName="MainBorder"
+                                              Storyboard.TargetProperty="(Border.Background).(LinearGradientBrush.GradientStops)[0].(GradientStop.Color)"
+                                              To="#FF5BA0F2" Duration="0:0:0.2"/>
+                                        <ColorAnimation Storyboard.TargetName="MainBorder"
+                                              Storyboard.TargetProperty="(Border.Background).(LinearGradientBrush.GradientStops)[1].(GradientStop.Color)"
+                                              To="#FF4A90E2" Duration="0:0:0.2"/>
+                                        <ColorAnimation Storyboard.TargetName="MainBorder"
+                                              Storyboard.TargetProperty="(Border.Background).(LinearGradientBrush.GradientStops)[2].(GradientStop.Color)"
+                                              To="#FF3A7BC8" Duration="0:0:0.2"/>
+                                        <DoubleAnimation Storyboard.TargetName="ShadowBorder"
+                                               Storyboard.TargetProperty="Opacity"
+                                               To="0.3" Duration="0:0:0.2"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+
+                        <!-- Pressed State -->
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="MainBorder" Property="Background">
+                                <Setter.Value>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <GradientStop Color="#FF3A7BC8" Offset="0"/>
+                                        <GradientStop Color="#FF4A90E2" Offset="0.5"/>
+                                        <GradientStop Color="#FF5BA0F2" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                            <Setter TargetName="MainBorder" Property="RenderTransform">
+                                <Setter.Value>
+                                    <ScaleTransform ScaleX="0.98" ScaleY="0.98"/>
+                                </Setter.Value>
+                            </Setter>
+                            <Setter TargetName="ShadowBorder" Property="Opacity" Value="0.2"/>
+                        </Trigger>
+
+                        <!-- Disabled State -->
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="MainBorder" Property="Background" Value="#FF888888"/>
+                            <Setter TargetName="MainBorder" Property="BorderBrush" Value="#FF666666"/>
+                            <Setter TargetName="ShadowBorder" Property="Opacity" Value="0.1"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+
+                <!-- Success Button Style (Green) -->
+                <ControlTemplate x:Key="SuccessButtonTemplate" TargetType="Button">
+                    <Grid>
+                        <Border Name="ShadowBorder" 
+                        CornerRadius="12" 
+                        Margin="4"
+                        Opacity="0.3">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                    <GradientStop Color="#40000000" Offset="0"/>
+                                    <GradientStop Color="#20000000" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Border.Effect>
+                                <BlurEffect Radius="8"/>
+                            </Border.Effect>
+                        </Border>
+
+                        <Border Name="MainBorder" 
+                        CornerRadius="10" 
+                        BorderThickness="1"
+                        Margin="2">
+                            <Border.BorderBrush>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                    <GradientStop Color="#FF52C41A" Offset="0"/>
+                                    <GradientStop Color="#FF389E0D" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.BorderBrush>
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                    <GradientStop Color="#FF73D13D" Offset="0"/>
+                                    <GradientStop Color="#FF52C41A" Offset="0.5"/>
+                                    <GradientStop Color="#FF389E0D" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+
+                            <Border CornerRadius="9" 
+                            BorderThickness="1" 
+                            BorderBrush="#30FFFFFF"
+                            Margin="1">
+                                <ContentPresenter HorizontalAlignment="Center" 
+                                        VerticalAlignment="Center"
+                                        Margin="16,8"/>
+                            </Border>
+                        </Border>
+                    </Grid>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="MainBorder" Property="Background">
+                                <Setter.Value>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <GradientStop Color="#FF85E047" Offset="0"/>
+                                        <GradientStop Color="#FF62D22F" Offset="0.5"/>
+                                        <GradientStop Color="#FF46AA1C" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="MainBorder" Property="Background">
+                                <Setter.Value>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <GradientStop Color="#FF389E0D" Offset="0"/>
+                                        <GradientStop Color="#FF52C41A" Offset="0.5"/>
+                                        <GradientStop Color="#FF73D13D" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                            <Setter TargetName="MainBorder" Property="RenderTransform">
+                                <Setter.Value>
+                                    <ScaleTransform ScaleX="0.98" ScaleY="0.98"/>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+
+                <!-- Danger Button Style (Red) -->
+                <ControlTemplate x:Key="DangerButtonTemplate" TargetType="Button">
+                    <Grid>
+                        <Border Name="ShadowBorder" 
+                        CornerRadius="12" 
+                        Margin="4"
+                        Opacity="0.3">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                    <GradientStop Color="#40000000" Offset="0"/>
+                                    <GradientStop Color="#20000000" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Border.Effect>
+                                <BlurEffect Radius="8"/>
+                            </Border.Effect>
+                        </Border>
+
+                        <Border Name="MainBorder" 
+                        CornerRadius="10" 
+                        BorderThickness="1"
+                        Margin="2">
+                            <Border.BorderBrush>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                    <GradientStop Color="#FFF5222D" Offset="0"/>
+                                    <GradientStop Color="#FFCF1322" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.BorderBrush>
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                    <GradientStop Color="#FFFF4D4F" Offset="0"/>
+                                    <GradientStop Color="#FFF5222D" Offset="0.5"/>
+                                    <GradientStop Color="#FFCF1322" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+
+                            <Border CornerRadius="9" 
+                            BorderThickness="1" 
+                            BorderBrush="#30FFFFFF"
+                            Margin="1">
+                                <ContentPresenter HorizontalAlignment="Center" 
+                                        VerticalAlignment="Center"
+                                        Margin="16,8"/>
+                            </Border>
+                        </Border>
+                    </Grid>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="MainBorder" Property="Background">
+                                <Setter.Value>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <GradientStop Color="#FFFF7875" Offset="0"/>
+                                        <GradientStop Color="#FFFF4D4F" Offset="0.5"/>
+                                        <GradientStop Color="#FFE6393D" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="MainBorder" Property="Background">
+                                <Setter.Value>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <GradientStop Color="#FFCF1322" Offset="0"/>
+                                        <GradientStop Color="#FFF5222D" Offset="0.5"/>
+                                        <GradientStop Color="#FFFF4D4F" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                            <Setter TargetName="MainBorder" Property="RenderTransform">
+                                <Setter.Value>
+                                    <ScaleTransform ScaleX="0.98" ScaleY="0.98"/>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+
+                <!-- Button Styles -->
+                <Style x:Key="ModernButtonStyle" TargetType="Button">
+                    <Setter Property="Template" Value="{StaticResource ModernButtonTemplate}"/>
+                    <Setter Property="Foreground" Value="White"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                    <Setter Property="FontSize" Value="14"/>
+                    <Setter Property="Cursor" Value="Hand"/>
+                    <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+                </Style>
+
+                <Style x:Key="SuccessButtonStyle" TargetType="Button">
+                    <Setter Property="Template" Value="{StaticResource SuccessButtonTemplate}"/>
+                    <Setter Property="Foreground" Value="White"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                    <Setter Property="FontSize" Value="14"/>
+                    <Setter Property="Cursor" Value="Hand"/>
+                    <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+                </Style>
+
+            <Style x:Key="DangerButtonStyle" TargetType="Button">
+                <Setter Property="Template" Value="{StaticResource DangerButtonTemplate}"/>
+                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+            </Style>
     </Application.Resources>
 </Application>

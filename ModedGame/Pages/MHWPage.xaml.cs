@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace ModedGame
+namespace ModedGame.Pages
 {
     /// <summary>
     /// Interaction logic for MHWPage.xaml

@@ -5,17 +5,18 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ModedGame"
         mc:Ignorable="d"
-        Title="MainWindow" Height="600" Width="1000">
+        Title="ModedGame"
+        WindowState="Maximized">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <Border Grid.Column="0" Grid.Row="0" Background="Aqua" Padding="10">
+        <Border Grid.Column="0" Grid.Row="0" Background="#04a5e5" Padding="10">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                <Button x:Name="MinecraftButton" Content="Minecraft" Width="100" Margin="5" Click="NevigateToMinecraft"/>
-                <Button x:Name="MHWButton" Content="MHW" Width="100" Margin="5" Click="NevigateToMHW"/>
+                <Button x:Name="MinecraftButton" Content="Minecraft" Style="{StaticResource ModernButtonStyle}" Margin="5" Click="NevigateToMinecraft"/>
+                <Button x:Name="MHWButton" Content="MHW" Style="{StaticResource ModernButtonStyle}" Margin="5" Click="NevigateToMHW"/>
             </StackPanel>
         </Border>
         <Frame Grid.Row="1" Name="MainFrame" NavigationUIVisibility="Hidden"/>
