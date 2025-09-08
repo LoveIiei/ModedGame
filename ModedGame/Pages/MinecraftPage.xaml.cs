@@ -3,25 +3,13 @@ using ModedGame.GameData;
 using ModedGame.Models;
 using ModedGame.Services;
 using ModedGame.ViewModels;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
-using System.Windows.Shapes;
-using static ModedGame.Models.MCVersionInfo;
 using Path = System.IO.Path;
 
 namespace ModedGame.Pages
@@ -50,6 +38,12 @@ namespace ModedGame.Pages
         {
             var selected = FileTypePicker.SelectedItem?.ToString();
             MessageBox.Show($"Selected: {selected}");
+        }
+
+        private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
+            e.Handled = true;
         }
 
         private string Get_FolderPath()
@@ -106,7 +100,8 @@ namespace ModedGame.Pages
             {
                 selectedFilePath = openFileDialog.FileName;
                 MCFileResult.Text = $"Selected: {Path.GetFileName(selectedFilePath)}";
-            } else
+            }
+            else
             {
                 MessageBox.Show(
                     "Error selecting files, please try again",
@@ -124,15 +119,17 @@ namespace ModedGame.Pages
                     string mcFileName = System.IO.Path.GetFileName(selectedFilePath);
                     File.Move(selectedFilePath, System.IO.Path.Combine(folderPath, mcFileName));
                     MCFileResult.Text += $"\n👍Successfully added {mcFileName}";
-                } catch (Exception ex) {
+                }
+                catch (Exception ex)
+                {
                     MessageBox.Show(
                      ex.Message,
                      "Error",
                      MessageBoxButton.OK,
-                     MessageBoxImage.Error       
+                     MessageBoxImage.Error
                      );
                 }
-            } 
+            }
             else
             {
                 MessageBox.Show(

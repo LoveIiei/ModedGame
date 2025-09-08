@@ -65,8 +65,12 @@
             <!-- Left Panel - Search and Filters -->
             <Border Grid.Column="0" Background="#f8f9fa" Padding="15" Margin="0,0,10,0">
                 <StackPanel>
-                    <TextBlock Text="Browse Modrinth" FontSize="16" FontWeight="Bold" Margin="0,0,0,15"/>
-
+                    <TextBlock Text="Browse Modrinth" FontSize="16" FontWeight="Bold" Margin="0,0,0,5"/>
+                    <TextBlock Margin="0,0,0,10">
+                        <Hyperlink NavigateUri="https://modrinth.com" RequestNavigate="Hyperlink_RequestNavigate">
+                            Visit Modrinth
+                        </Hyperlink>    
+                    </TextBlock>
                     <!-- Search Box -->
                     <TextBlock Text="Search:" Margin="0,0,0,5"/>
                     <TextBox x:Name="SearchBox" Height="30" Margin="0,0,0,10"/>
