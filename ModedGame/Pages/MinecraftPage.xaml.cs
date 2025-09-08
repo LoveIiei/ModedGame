@@ -52,6 +52,28 @@ namespace ModedGame.Pages
             MessageBox.Show($"Selected: {selected}");
         }
 
+        private string Get_FolderPath()
+        {
+            string folderPath = null;
+            if (MinecraftPaths.MinecraftExists)
+            {
+                string selectedId = FileTypePicker.SelectedValue.ToString();
+                switch (selectedId)
+                {
+                    case "1":
+                        folderPath = MinecraftPaths.ModsFolder;
+                        break;
+                    case "2":
+                        folderPath = MinecraftPaths.ResourcePacksFolder;
+                        break;
+                    case "3":
+                        folderPath = MinecraftPaths.ShadersFolder;
+                        break;
+                }
+            }
+            return folderPath;
+        }
+
         private void File_Click(object sender, RoutedEventArgs e)
         {
             string selectedFilePath;
@@ -96,20 +118,7 @@ namespace ModedGame.Pages
             }
             if (MinecraftPaths.MinecraftExists)
             {
-                string selectedId = FileTypePicker.SelectedValue.ToString();
-                string folderPath = null;
-                switch (selectedId)
-                {
-                    case "1":
-                        folderPath = MinecraftPaths.ModsFolder;
-                        break;
-                    case "2":
-                        folderPath = MinecraftPaths.ResourcePacksFolder;
-                        break;
-                    case "3":
-                        folderPath = MinecraftPaths.ShadersFolder;
-                        break;
-                }
+                string folderPath = Get_FolderPath();
                 try
                 {
                     string mcFileName = System.IO.Path.GetFileName(selectedFilePath);
@@ -136,6 +145,21 @@ namespace ModedGame.Pages
             }
 
         }
+
+        private async void OpenFolder_Click(object sender, RoutedEventArgs e)
+        {
+            if (!MinecraftPaths.MinecraftExists)
+            {
+                MessageBox.Show("Minecraft Folder does not exist!",
+                    "Error",
+                     MessageBoxButton.OK,
+                     MessageBoxImage.Error);
+                return;
+            }
+            string folderPath = Get_FolderPath();
+            Process.Start("explorer.exe", folderPath);
+        }
+
         private async void SearchMods_Click(object sender, RoutedEventArgs e)
         {
             _currentPage = 1;
@@ -324,16 +348,42 @@ namespace ModedGame.Pages
                 button.IsEnabled = false;
                 button.Content = "Loading...";
 
-                // Get the latest version
                 var versions = await _modrinthService.GetProjectVersionsAsync(mod.ProjectId);
-                var latestVersion = versions.FirstOrDefault();
 
-                if (latestVersion?.Files?.Any() == true)
+                if (versions == null || !versions.Any())
                 {
-                    var primaryFile = latestVersion.Files.FirstOrDefault(f => f.Primary) ??
-                                     latestVersion.Files.First();
+                    MessageBox.Show("No versions found for this mod.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    // We must return here, but first, restore the button's original state.
+                    button.Content = "Download";
+                    button.IsEnabled = true;
+                    return;
+                }
 
-                    var progressWindow = new ProgressWindow($"Downloading {mod.Title}...");
+                // Restore the button's state before showing the dialog, as the dialog is a blocking operation.
+                button.Content = "Download";
+                button.IsEnabled = true;
+
+                var versionSelectorWindow = new VersionSelectorWindow(versions);
+
+                // ShowDialog() is a "modal" operation, which means it will pause the execution of this method
+                // until the user either clicks "Select" or "Cancel" (or closes the window).
+                bool? result = versionSelectorWindow.ShowDialog();
+
+                if (result != true)
+                {
+                    return; // User cancelled the selection.
+                }
+
+                var chosenVersion = versionSelectorWindow.SelectedVersion;
+
+                if (chosenVersion?.Files?.Any() == true)
+                {
+                    button.IsEnabled = false; // Disable the button again for the download itself.
+                    button.Content = "Downloading...";
+
+                    var primaryFile = chosenVersion.Files.FirstOrDefault(f => f.Primary) ?? chosenVersion.Files.First();
+
+                    var progressWindow = new ProgressWindow($"Downloading {mod.Title} (v{chosenVersion.Name})...");
                     progressWindow.Show();
 
                     var progress = new Progress<int>(percentage =>
@@ -341,36 +391,41 @@ namespace ModedGame.Pages
                         progressWindow.UpdateProgress(percentage);
                     });
 
-                    // Download to mods folder
                     var modsPath = System.IO.Path.Combine(MinecraftPaths.MinecraftRoot, "mods");
                     Directory.CreateDirectory(modsPath);
 
                     bool success = await _modrinthService.DownloadModAsync(primaryFile, modsPath, progress);
                     progressWindow.Close();
+
                     if (success)
                     {
                         MessageBox.Show($"Successfully downloaded {mod.Title}!", "Download Complete",
                             MessageBoxButton.OK, MessageBoxImage.Information);
-                        button.Content = "Downloaded";
+                        button.Content = "Downloaded"; // Leave the button in a "Downloaded" state
                         button.Background = System.Windows.Media.Brushes.LightGreen;
+                        button.IsEnabled = false; // Prevent re-downloading
                     }
                 }
                 else
                 {
-                    MessageBox.Show("No download files found for this mod.", "Error",
+                    MessageBox.Show("No download files found for the selected version.", "Error",
                         MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error downloading mod: {ex.Message}", "Error",
+                MessageBox.Show($"Error getting mod versions or downloading: {ex.Message}", "Error",
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
             finally
             {
-                button.IsEnabled = true;
-                if (button.Content.ToString() == "Loading...")
+                // This 'finally' block ensures the button is re-enabled if any error occurs
+                // or if the download fails, UNLESS it has been successfully downloaded.
+                if (button.Content.ToString() != "Downloaded")
+                {
+                    button.IsEnabled = true;
                     button.Content = "Download";
+                }
             }
         }
 

@@ -6,6 +6,19 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <PackageIcon>ModedGame.jpg</PackageIcon>
+    <ApplicationIcon>Assets\ModedGame.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\ModedGame.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Assets\ModedGame.jpg">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
 </Project>

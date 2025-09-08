@@ -41,7 +41,6 @@ namespace ModedGame.ViewModels
             new MCFileTypes { Id = 1, Name = "Mod"}, 
             new MCFileTypes { Id = 2, Name = "ResourcePack" },
             new MCFileTypes { Id = 3, Name = "Shaders" },
-            new MCFileTypes { Id = 4, Name = "Sound" },
         };
             SelectedType = MCFileType[0]; // Select first item
         }
