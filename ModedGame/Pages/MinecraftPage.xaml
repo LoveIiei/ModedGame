@@ -44,9 +44,26 @@
                     Margin="15,10,10,5" 
                     Click="OpenFolder_Click"/>
 
+            <StackPanel x:Name="LoggedOutView" VerticalAlignment="Center" 
+                        Margin="660,10,10,5" HorizontalAlignment="Center">
+                <Button x:Name="LoginMC" Content="Login MC" 
+                    Style="{StaticResource SuccessButtonStyle}" 
+                    Click="LoginMC_Click"/>
+                <TextBlock Text="Login to use your profile in Multiplayer"
+                           FontSize="8"></TextBlock>
+            </StackPanel>
+
+            <!-- Logged-In View (hidden by default) -->
+            <StackPanel x:Name="LoggedInView" VerticalAlignment="Center" 
+                        Margin="660,10,10,5" HorizontalAlignment="Center" Visibility="Collapsed">
+                <Image x:Name="PlayerAvatar" Width="64" Height="64"/>
+                <TextBlock x:Name="WelcomeMessage" Text="Hello, Player!" HorizontalAlignment="Center"/>
+            </StackPanel>
+
+
             <ComboBox
                 x:Name="GameVersionPicker" Width="200" Height="30"
-                Margin="700,10,10,5"
+                Margin="15,10,10,5"
             ></ComboBox>
             <Button x:Name="StartMinecraft" Style="{StaticResource SuccessButtonStyle}"
                     Content="Play Minecraft"

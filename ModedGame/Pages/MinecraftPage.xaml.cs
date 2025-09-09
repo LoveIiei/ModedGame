@@ -9,6 +9,7 @@ using System.IO.Compression;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using Path = System.IO.Path;
 
@@ -26,6 +27,9 @@ namespace ModedGame.Pages
         private int _totalPages = 0;
         private ModrinthSearchResponse _lastSearchResult;
         private Func<int, int, Task<ModrinthSearchResponse>> _currentSearchFunction;
+        private MCUserInfoModel _currentUser;
+        private MCAuthenticationService _authenticator;
+
         public MinecraftPage()
         {
             InitializeComponent();
@@ -33,6 +37,7 @@ namespace ModedGame.Pages
             DataContext = new MCFileTypeViewModel();
             LoadInstalledVersions();
             UpdatePaginationUI();
+            this.Loaded += async (s, e) => await InitializeAsync();
         }
         private void FileTypePicker_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -156,6 +161,71 @@ namespace ModedGame.Pages
             string folderPath = Get_FolderPath();
             Process.Start("explorer.exe", folderPath);
         }
+
+        private async Task InitializeAsync()
+        {
+            // Create the authenticator with its persistent cache
+            _authenticator = await MCAuthenticationService.CreateAsync();
+            // Check if the user is already logged in from a previous session
+            await TrySilentLoginAsync();
+        }
+
+        // Tries to log the user in without showing a browser
+        private async Task TrySilentLoginAsync()
+        {
+            try
+            {
+                // Call Authenticate in SILENT mode
+                _currentUser = await _authenticator.Authenticate(silent: true);
+                UpdateUiForLoggedInUser();
+            }
+            catch (Exception)
+            {
+                // This is expected if the user is not logged in.
+                _currentUser = null;
+                UpdateUiForLoggedOutUser();
+            }
+        }
+
+        // This runs when the user clicks the login button
+        private async void LoginMC_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Call Authenticate in INTERACTIVE mode
+                _currentUser = await _authenticator.Authenticate(silent: false);
+                UpdateUiForLoggedInUser();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to login: {ex.Message}");
+                _currentUser = null;
+                UpdateUiForLoggedOutUser();
+            }
+        }
+
+        // Helper method to show the logged-in UI
+        private void UpdateUiForLoggedInUser()
+        {
+            if (_currentUser == null) return;
+
+            WelcomeMessage.Text = $"Hello, {_currentUser.Username}!";
+
+            // Use a service like Crafatar to get the player's avatar
+            var avatarUrl = $"https://crafatar.com/avatars/{_currentUser.Uuid}?size=64&overlay";
+            PlayerAvatar.Source = new BitmapImage(new Uri(avatarUrl));
+
+            LoggedOutView.Visibility = Visibility.Collapsed;
+            LoggedInView.Visibility = Visibility.Visible;
+        }
+
+        // Helper method to show the logged-out UI
+        private void UpdateUiForLoggedOutUser()
+        {
+            LoggedOutView.Visibility = Visibility.Visible;
+            LoggedInView.Visibility = Visibility.Collapsed;
+        }
+
 
         private async void SearchMods_Click(object sender, RoutedEventArgs e)
         {
@@ -518,7 +588,7 @@ namespace ModedGame.Pages
             try
             {
                 var launcher = new SimplifiedMinecraftLauncher();
-                launcher.LaunchMinecraft(selectedVersion);
+                launcher.LaunchMinecraft(selectedVersion, _currentUser);
                 MessageBox.Show($"Minecraft {selectedVersion} launched!");
             }
             catch (Exception ex)
@@ -591,7 +661,7 @@ namespace ModedGame.Pages
                 }
             }
 
-            public void LaunchMinecraft(string version)
+            public void LaunchMinecraft(string version, MCUserInfoModel user)
             {
                 // Use the new method to get the complete, merged version info
                 var versionInfo = GetMergedVersionInfo(version);
@@ -614,7 +684,7 @@ namespace ModedGame.Pages
                 SetupNatives(versionInfo, nativesDir);
 
                 var classpath = BuildClasspath(versionInfo, versionJar);
-                var cmd = BuildLaunchCommand(versionInfo, version, classpath, nativesDir); // Pass the full versionInfo
+                var cmd = BuildLaunchCommand(versionInfo, version, classpath, nativesDir, user); // Pass the full versionInfo
 
                 var startInfo = new ProcessStartInfo
                 {
@@ -703,7 +773,8 @@ namespace ModedGame.Pages
                 return Path.Combine(minecraftDir, "libraries", group, artifact, version, jarName);
             }
 
-            private string BuildLaunchCommand(MCVersionInfo versionInfo, string version, string classpath, string nativesDir)
+            private string BuildLaunchCommand(MCVersionInfo versionInfo, string version, 
+                string classpath, string nativesDir, MCUserInfoModel user)
             {
                 var args = new List<string>();
 
@@ -734,17 +805,18 @@ namespace ModedGame.Pages
                     }
                 }
 
+
                 // Define placeholders with RAW, UNQUOTED values
                 var replacements = new Dictionary<string, string>
                 {
-                    { "${auth_player_name}", "Player" },
+                    { "${auth_player_name}", user.Username ?? "Player" },
                     { "${version_name}", version },
                     { "${game_directory}", minecraftDir }, // No quotes!
                     { "${assets_root}", Path.Combine(minecraftDir, "assets") }, // No quotes!
                     { "${assets_index_name}", versionInfo.AssetIndex?.Id ?? versionInfo.InheritsFrom ?? version },
-                    { "${auth_uuid}", "00000000-0000-0000-0000-000000000000" },
-                    { "${auth_access_token}", "0" },
-                    { "${user_type}", "legacy" },
+                    { "${auth_uuid}", user.Uuid ?? "00000000-0000-0000-0000-000000000000" },
+                    { "${auth_access_token}", user.AccessToken ?? "0" },
+                    { "${user_type}", user != null ? "msa" : "legacy" },
                     { "${version_type}", "release" },
                     { "${natives_directory}", nativesDir }, // No quotes!
                     { "${launcher_name}", "MyLauncher" },
