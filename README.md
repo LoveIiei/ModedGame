@@ -9,7 +9,7 @@ Please visit the [Release Page](https://github.com/LoveIiei/ModedGame/releases/)
 
 ## Minecraft Launcher + Mod:
 ![Minecraft Launcher](/Images/minecraft.png)
-1. **Lightweight Build**: The executable is approximately **400 KB**, making it over **25 times smaller** than the standard 10 MB vanilla launcher.
+1. **Lightweight Build**: The executable is approximately **2 MB**, making it over **5 times smaller** than the standard 10 MB vanilla launcher.
 2. **Seamless Mod Integration**: Easily add your existing mods and resource packs by placing them into their respective folders with just *one click*.
 3. **Integrated Modrinth Support**: A fully functional system for browsing and installing mods directly from Modrinth, **featuring search, sorting, filtering, and version selection**. Once downloaded, mods are automatically placed in the correct .minecraft/mods folder for immediate use.
 
