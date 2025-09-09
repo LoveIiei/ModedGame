@@ -707,7 +707,7 @@ namespace ModedGame.Pages
             {
                 var args = new List<string>();
 
-                // 1. Process JVM Arguments from JSON
+                // Process JVM Arguments from JSON
                 if (versionInfo.Arguments?.Jvm != null)
                 {
                     foreach (var argObj in versionInfo.Arguments.Jvm)
@@ -722,7 +722,7 @@ namespace ModedGame.Pages
                 // Add Main Class - It's technically a JVM argument
                 args.Add(versionInfo.MainClass);
 
-                // 2. Process Game Arguments from JSON
+                // Process Game Arguments from JSON
                 if (versionInfo.Arguments?.Game != null)
                 {
                     foreach (var argObj in versionInfo.Arguments.Game)
@@ -734,25 +734,25 @@ namespace ModedGame.Pages
                     }
                 }
 
-                // 3. Define placeholders with RAW, UNQUOTED values
+                // Define placeholders with RAW, UNQUOTED values
                 var replacements = new Dictionary<string, string>
-    {
-        { "${auth_player_name}", "Player" },
-        { "${version_name}", version },
-        { "${game_directory}", minecraftDir }, // No quotes!
-        { "${assets_root}", Path.Combine(minecraftDir, "assets") }, // No quotes!
-        { "${assets_index_name}", versionInfo.AssetIndex?.Id ?? versionInfo.InheritsFrom ?? version },
-        { "${auth_uuid}", "00000000-0000-0000-0000-000000000000" },
-        { "${auth_access_token}", "0" },
-        { "${user_type}", "legacy" },
-        { "${version_type}", "release" },
-        { "${natives_directory}", nativesDir }, // No quotes!
-        { "${launcher_name}", "MyLauncher" },
-        { "${launcher_version}", "1.0" },
-        { "${classpath}", classpath } // No quotes!
-    };
+                {
+                    { "${auth_player_name}", "Player" },
+                    { "${version_name}", version },
+                    { "${game_directory}", minecraftDir }, // No quotes!
+                    { "${assets_root}", Path.Combine(minecraftDir, "assets") }, // No quotes!
+                    { "${assets_index_name}", versionInfo.AssetIndex?.Id ?? versionInfo.InheritsFrom ?? version },
+                    { "${auth_uuid}", "00000000-0000-0000-0000-000000000000" },
+                    { "${auth_access_token}", "0" },
+                    { "${user_type}", "legacy" },
+                    { "${version_type}", "release" },
+                    { "${natives_directory}", nativesDir }, // No quotes!
+                    { "${launcher_name}", "MyLauncher" },
+                    { "${launcher_version}", "1.0" },
+                    { "${classpath}", classpath } // No quotes!
+                };
 
-                // 4. Perform placeholder replacement safely
+                // Perform placeholder replacement safely
                 for (int i = 0; i < args.Count; i++)
                 {
                     foreach (var pair in replacements)
@@ -769,7 +769,7 @@ namespace ModedGame.Pages
     };
                 args.InsertRange(0, finalJvmArgs);
 
-                // 5. Final, critical step: Quote any argument that contains spaces.
+                // Final, critical step: Quote any argument that contains spaces.
                 for (int i = 0; i < args.Count; i++)
                 {
                     // The classpath argument (-cp) needs special handling as its value is next

@@ -29,8 +29,6 @@ public class McLibrary
     // This is the critical change: A List of rules, not a single rule object.
     public List<LibraryRule> Rules { get; set; }
 
-    // You might also have a 'downloads' property for libraries from Forge, etc.
-    // public LibraryDownloads Downloads { get; set; } 
 }
 
 // Renamed for clarity from LibraryRules to LibraryRule (singular)

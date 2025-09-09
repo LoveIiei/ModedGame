@@ -11,7 +11,7 @@ namespace ModedGame
         // Public property to retrieve the user's choice
         public ModrinthVersion SelectedVersion { get; private set; }
 
-        // The constructor now accepts a list of versions to display
+        // The constructor accepts a list of versions to display
         public VersionSelectorWindow(List<ModrinthVersion> versions)
         {
             InitializeComponent();

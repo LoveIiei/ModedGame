@@ -155,7 +155,7 @@
 
                 <!-- Results Header -->
                 <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
-                    <TextBlock x:Name="ResultsCount" Text="Search for mods above" 
+                    <TextBlock x:Name="ResultsCount" Text="Click Search Mods to load all mods based on Filters" 
                                FontSize="14" VerticalAlignment="Center"/>
                     <TextBlock x:Name="LoadingText" Text="Loading..." 
                                FontSize="14" VerticalAlignment="Center" 
